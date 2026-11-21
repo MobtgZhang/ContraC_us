@@ -12,7 +12,7 @@ ifeq ($(abspath $(BUILD_DIR)),$(CURDIR))
 $(error BUILD_DIR must not be the source directory)
 endif
 
-SDL_PACKAGES := 'sdl2 >= 2.0.10' 'SDL2_mixer >= 2.0.2'
+SDL_PACKAGES := 'sdl3 >= 3.2.0'
 SDL_CFLAGS = $(shell $(PKG_CONFIG) --cflags $(SDL_PACKAGES))
 SDL_LIBS = $(shell $(PKG_CONFIG) --libs $(SDL_PACKAGES))
 
@@ -44,12 +44,12 @@ test: all $(SMOKE)
 	"$(GAME)" --help
 	@set -e; for scenario in input audio 1 2 3 4 5 6 7 8 ending; do \
 		printf 'Testing %s\n' "$$scenario"; \
-		SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy "$(SMOKE)" "$(ASSET_DIR)" "$$scenario"; \
+		SDL_VIDEO_DRIVER=dummy SDL_AUDIO_DRIVER=dummy "$(SMOKE)" "$(ASSET_DIR)" "$$scenario"; \
 	done
 
 check-deps:
 	@$(PKG_CONFIG) --exists $(SDL_PACKAGES) || { \
-		printf '%s\n' 'Install pkg-config, SDL2 >= 2.0.10 and SDL2_mixer >= 2.0.2 development packages.' >&2; \
+		printf '%s\n' 'Install pkg-config and the SDL3 >= 3.2.0 development package.' >&2; \
 		exit 1; \
 	}
 

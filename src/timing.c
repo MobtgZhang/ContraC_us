@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "timing.h"
 
-#include <SDL.h>
+#include <SDL3/SDL_timer.h>
 #include <time.h>
 
 static const Uint64 frames_per_second = 60;

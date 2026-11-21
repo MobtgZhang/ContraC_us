@@ -8,14 +8,14 @@
 #include <stdio.h>
 #include <string.h>
 
-bool g_keys[SDL_NUM_SCANCODES];
+bool g_keys[SDL_SCANCODE_COUNT];
 
 bool init_app(const char *assets, bool fullscreen, bool audio){
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0 || !init_video(fullscreen)){
+    if (!SDL_Init(SDL_INIT_VIDEO) || !init_video(fullscreen)){
         fprintf(stderr, "Cannot initialize SDL video: %s\n", SDL_GetError());
         return false;
     }
-    SDL_ShowCursor(SDL_DISABLE);
+    SDL_HideCursor();
 
     const size_t gfx_size = 57568;
     size_t size = 0;
@@ -47,19 +47,15 @@ bool init_app(const char *assets, bool fullscreen, bool audio){
 bool process_events(void){
     SDL_Event event;
     while (SDL_PollEvent(&event)){
-        if (event.type == SDL_QUIT)
+        if (event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED)
             return false;
-        if (event.type == SDL_WINDOWEVENT){
-            if (event.window.event == SDL_WINDOWEVENT_CLOSE)
-                return false;
-            if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
-                memset(g_keys, 0, sizeof(g_keys));
-        }
-        if (event.type != SDL_KEYDOWN && event.type != SDL_KEYUP)
+        if (event.type == SDL_EVENT_WINDOW_FOCUS_LOST)
+            memset(g_keys, 0, sizeof(g_keys));
+        if (event.type != SDL_EVENT_KEY_DOWN && event.type != SDL_EVENT_KEY_UP)
             continue;
 
-        const SDL_Scancode key = event.key.keysym.scancode;
-        if (event.type == SDL_KEYDOWN){
+        const SDL_Scancode key = event.key.scancode;
+        if (event.type == SDL_EVENT_KEY_DOWN){
             if (event.key.repeat)
                 continue;
             if (key == SDL_SCANCODE_ESCAPE)
@@ -67,8 +63,8 @@ bool process_events(void){
             if (key == SDL_SCANCODE_F11 && !toggle_fullscreen())
                 fprintf(stderr, "Cannot toggle fullscreen: %s\n", SDL_GetError());
         }
-        if (key > SDL_SCANCODE_UNKNOWN && key < SDL_NUM_SCANCODES)
-            g_keys[key] = event.type == SDL_KEYDOWN;
+        if (key > SDL_SCANCODE_UNKNOWN && key < SDL_SCANCODE_COUNT)
+            g_keys[key] = event.type == SDL_EVENT_KEY_DOWN;
     }
     return true;
 }
