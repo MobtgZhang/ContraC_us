@@ -1,3 +1,7 @@
+# Default local build directories
+/build-make/
+/build/
+
 # Prerequisites
 *.d
 
