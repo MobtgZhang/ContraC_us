@@ -1,10 +1,10 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include <SDL.h>
+#include "sdl_compat.h"
 #include <stdbool.h>
 
-extern bool g_keys[SDL_NUM_SCANCODES];
+extern bool g_keys[CONTRA_SCANCODE_COUNT];
 
 //contra
 #define EXT(v) (v<0x80)? v:((0x100-v)*-1)

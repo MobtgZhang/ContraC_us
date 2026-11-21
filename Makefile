@@ -2,6 +2,7 @@
 .DELETE_ON_ERROR:
 
 BUILD_DIR ?= build-make
+SDL ?= 2
 PKG_CONFIG ?= pkg-config
 CFLAGS ?= -O2
 
@@ -12,14 +13,25 @@ ifeq ($(abspath $(BUILD_DIR)),$(CURDIR))
 $(error BUILD_DIR must not be the source directory)
 endif
 
+ifeq ($(SDL),2)
+OUTPUT_DIR := $(BUILD_DIR)
 SDL_PACKAGES := 'sdl2 >= 2.0.10' 'SDL2_mixer >= 2.0.2'
+SDL_DUMMY_DRIVERS := SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy
+else ifeq ($(SDL),3)
+OUTPUT_DIR := $(BUILD_DIR)/sdl3
+SDL_PACKAGES := 'sdl3 >= 3.2.0'
+SDL_DUMMY_DRIVERS := SDL_VIDEO_DRIVER=dummy SDL_AUDIO_DRIVER=dummy
+else
+$(error SDL must be 2 or 3)
+endif
+
 SDL_CFLAGS = $(shell $(PKG_CONFIG) --cflags $(SDL_PACKAGES))
 SDL_LIBS = $(shell $(PKG_CONFIG) --libs $(SDL_PACKAGES))
 
-GAME := $(BUILD_DIR)/contra
-SMOKE := $(BUILD_DIR)/contra_smoke
-OBJ_DIR := $(BUILD_DIR)/obj
-ASSET_DIR := $(BUILD_DIR)/resource
+GAME := $(OUTPUT_DIR)/contra
+SMOKE := $(OUTPUT_DIR)/contra_smoke
+OBJ_DIR := $(OUTPUT_DIR)/obj
+ASSET_DIR := $(OUTPUT_DIR)/resource
 
 GAME_SOURCES := $(filter-out src/main.c,$(wildcard src/*.c))
 GAME_OBJECTS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(GAME_SOURCES))
@@ -44,12 +56,12 @@ test: all $(SMOKE)
 	"$(GAME)" --help
 	@set -e; for scenario in input audio 1 2 3 4 5 6 7 8 ending; do \
 		printf 'Testing %s\n' "$$scenario"; \
-		SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy "$(SMOKE)" "$(ASSET_DIR)" "$$scenario"; \
+		$(SDL_DUMMY_DRIVERS) "$(SMOKE)" "$(ASSET_DIR)" "$$scenario"; \
 	done
 
 check-deps:
 	@$(PKG_CONFIG) --exists $(SDL_PACKAGES) || { \
-		printf '%s\n' 'Install pkg-config, SDL2 >= 2.0.10 and SDL2_mixer >= 2.0.2 development packages.' >&2; \
+		printf '%s\n' "Install pkg-config and development packages for $(SDL_PACKAGES)." >&2; \
 		exit 1; \
 	}
 
@@ -61,7 +73,7 @@ $(SMOKE): $(SMOKE_OBJECT) $(GAME_OBJECTS)
 
 $(OBJ_DIR)/%.o: %.c Makefile | check-deps
 	@mkdir -p "$(@D)"
-	$(CC) $(CPPFLAGS) -Isrc $(SDL_CFLAGS) $(CFLAGS) -std=c17 -MMD -MP -c "$<" -o "$@"
+	$(CC) $(CPPFLAGS) -DCONTRA_SDL=$(SDL) -Isrc $(SDL_CFLAGS) $(CFLAGS) -std=c17 -MMD -MP -c "$<" -o "$@"
 
 $(ASSET_DIR)/contra.ini: contra.ini
 	@mkdir -p "$(@D)"
@@ -78,7 +90,7 @@ $(BGM): $(ASSET_DIR)/bgm/%.raw: resource/BGMS.dat
 clean:
 	$(RM) -- $(GAME) $(SMOKE) $(OBJECTS) $(DEPFILES) $(ASSETS)
 	@set -e; for dir in "$(OBJ_DIR)/src" "$(OBJ_DIR)/tests" "$(OBJ_DIR)" \
-	    "$(ASSET_DIR)/bgm" "$(ASSET_DIR)/sfx" "$(ASSET_DIR)" "$(BUILD_DIR)"; do \
+	    "$(ASSET_DIR)/bgm" "$(ASSET_DIR)/sfx" "$(ASSET_DIR)" "$(OUTPUT_DIR)"; do \
 		if test -d "$$dir"; then rmdir --ignore-fail-on-non-empty -- "$$dir"; fi; \
 	done
 

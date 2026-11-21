@@ -1,6 +1,6 @@
 #include "assets.h"
 
-#include <SDL.h>
+#include "sdl_compat.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>

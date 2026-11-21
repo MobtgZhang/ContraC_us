@@ -1,0 +1,18 @@
+#ifndef SDL_COMPAT_H
+#define SDL_COMPAT_H
+
+#if CONTRA_SDL == 3
+#include <SDL3/SDL.h>
+#define CONTRA_SCANCODE_COUNT SDL_SCANCODE_COUNT
+#define CONTRA_KEY_DOWN SDL_EVENT_KEY_DOWN
+#define CONTRA_KEY_UP SDL_EVENT_KEY_UP
+#elif CONTRA_SDL == 2
+#include <SDL.h>
+#define CONTRA_SCANCODE_COUNT SDL_NUM_SCANCODES
+#define CONTRA_KEY_DOWN SDL_KEYDOWN
+#define CONTRA_KEY_UP SDL_KEYUP
+#else
+#error CONTRA_SDL must be 2 or 3
+#endif
+
+#endif

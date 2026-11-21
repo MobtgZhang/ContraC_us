@@ -3,6 +3,11 @@
 
 #include <stdbool.h>
 
+#if CONTRA_SDL == 3
+#include <SDL3/SDL_audio.h>
+SDL_AudioDeviceID sound_device(void);
+#endif
+
 bool init_sound(const char *assets);
 void shutdown_sound(void);
 void set_bgm_tracks(int level, int boss);

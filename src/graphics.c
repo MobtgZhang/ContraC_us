@@ -98,6 +98,17 @@ static SDL_Texture* texture;
 static void CalcPaletteTable(void);
 
 bool init_video(bool fullscreen){
+#if CONTRA_SDL == 3
+	const SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY |
+	                              (fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+	window = SDL_CreateWindow("Contra", SCREEN_W * 3, SCREEN_H * 3, flags);
+	if (!window || !SDL_SetWindowMinimumSize(window, SCREEN_W, SCREEN_H))
+		return false;
+	renderer = SDL_CreateRenderer(window, NULL);
+	if (!renderer || !SDL_SetRenderLogicalPresentation(renderer, SCREEN_W, SCREEN_H,
+	                                                   SDL_LOGICAL_PRESENTATION_LETTERBOX))
+		return false;
+#else
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 	const Uint32 flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI |
 	                     (fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
@@ -111,10 +122,15 @@ bool init_video(bool fullscreen){
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
 	if (!renderer || SDL_RenderSetLogicalSize(renderer, SCREEN_W, SCREEN_H) < 0)
 		return false;
+#endif
 	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
 	                            SDL_TEXTUREACCESS_STREAMING, SCREEN_W, SCREEN_H);
 	if (!texture)
 		return false;
+#if CONTRA_SDL == 3
+	if (!SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST))
+		return false;
+#endif
 
 	CalcPaletteTable();
 	memset(LineColormode,0,SCREEN_H);
@@ -152,7 +168,11 @@ void shutdown_video(void){
 
 bool toggle_fullscreen(void){
 	const bool fullscreen = SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN;
+#if CONTRA_SDL == 3
+	return SDL_SetWindowFullscreen(window, !fullscreen);
+#else
 	return SDL_SetWindowFullscreen(window, fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP) == 0;
+#endif
 }
 
 static void CalcPaletteTable(void){
@@ -379,7 +399,11 @@ bool present_video(void){
 	DrawBG();
 	void *pixels = NULL;
 	int pitch = 0;
+#if CONTRA_SDL == 3
+	if (!SDL_LockTexture(texture, NULL, &pixels, &pitch))
+#else
 	if (SDL_LockTexture(texture, NULL, &pixels, &pitch) < 0)
+#endif
 		return false;
 	for (int row = 0; row < SCREEN_H; ++row){
 		const unsigned char mode = LineColormode[row];
@@ -390,10 +414,15 @@ bool present_video(void){
 			target[column] = palette[source[column] & 0x3f];
 	}
 	SDL_UnlockTexture(texture);
+#if CONTRA_SDL == 3
+	return SDL_RenderClear(renderer) && SDL_RenderTexture(renderer, texture, NULL, NULL) &&
+	       SDL_RenderPresent(renderer);
+#else
 	if (SDL_RenderClear(renderer) < 0 || SDL_RenderCopy(renderer, texture, NULL, NULL) < 0)
 		return false;
 	SDL_RenderPresent(renderer);
 	return true;
+#endif
 }
 
 void Set_attr(unsigned char addr, unsigned char val){

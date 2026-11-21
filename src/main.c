@@ -6,6 +6,9 @@
 #include "graphics.h"
 #include "timing.h"
 
+#if CONTRA_SDL == 3
+#include <SDL3/SDL_main.h>
+#endif
 #include <errno.h>
 #include <limits.h>
 #include <stdio.h>
@@ -97,7 +100,11 @@ int main(int argc, char *argv[]){
         }
     }
 
+#if CONTRA_SDL == 3
+    const char *base = SDL_GetBasePath();
+#else
     char *base = SDL_GetBasePath();
+#endif
     if (!base){
         fprintf(stderr, "Cannot find the executable directory: %s\n", SDL_GetError());
         return 1;
@@ -110,7 +117,9 @@ int main(int argc, char *argv[]){
         assets = join_asset_path(base, CONTRA_INSTALLED_ASSETS);
     }
 #endif
+#if CONTRA_SDL == 2
     SDL_free(base);
+#endif
     char *config = assets ? join_asset_path(assets, "contra.ini") : NULL;
     if (!config){
         fprintf(stderr, "Cannot allocate the asset paths\n");
