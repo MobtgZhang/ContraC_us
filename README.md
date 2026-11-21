@@ -1,6 +1,6 @@
-# Contra for Linux (SDL2)
+# Contra for Linux (SDL3)
 
-This Linux port uses the game logic and assets from the original Windows project, `feomao/contra_c`. Both the game and its tests are written in C17. SDL2 handles rendering and keyboard input, and SDL2_mixer plays sound effects and background music. No C++ compiler, Windows DLLs, or Wine are required.
+This Linux port uses the game logic and assets from the original Windows project, `feomao/contra_c`. Both the game and its tests are written in C17. SDL3 handles rendering, keyboard input, sound effects, and background music. No C++ compiler, Windows DLLs, or Wine are required.
 
 ## Screenshots
 
@@ -16,10 +16,10 @@ These screenshots were captured from the Linux build.
 
 ## Build and Run
 
-The Makefile requires GNU Make, a C17-capable compiler, `pkg-config`, `unzip`, and the development packages for SDL2 (2.0.10 or newer) and SDL2_mixer (2.0.2 or newer). On Debian or Ubuntu, install them with:
+The Makefile requires GNU Make, a C17-capable compiler, `pkg-config`, `unzip`, and SDL3 development files (3.2.0 or newer). On Debian or Ubuntu releases that package SDL3, install them with:
 
 ```sh
-sudo apt install gcc libc6-dev make pkg-config unzip libsdl2-dev libsdl2-mixer-dev
+sudo apt install gcc libc6-dev make pkg-config unzip libsdl3-dev
 ```
 
 From the project directory, run:
@@ -56,7 +56,7 @@ For a CMake build, run `ctest --test-dir build --output-on-failure` to run the s
 
 ## Project Layout
 
-- `src/`: C source files for the game and SDL2 platform layer.
+- `src/`: C source files for the game and SDL3 platform layer.
 - `tests/`: smoke tests.
 - `resource/`: graphics, the music archive, and sound effects used by the game.
 - `assets/`: README screenshots, not needed to build or run the game.
